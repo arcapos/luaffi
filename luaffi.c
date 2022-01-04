@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 - 2021 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick.
+ * Copyright (c) 2017 - 2022 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick.
  * All rights reserved.
  *
  * This source code is the proprietary confidential property of Micro Systems
@@ -130,8 +130,49 @@ luaffi_prep_cif(lua_State *L)
 static int
 luaffi_prep_cif_var(lua_State *L)
 {
-	lua_pushnil(L);
-	return 1;
+	ffi_func *func;
+	void **symbol;
+	ffi_type **arg_type;
+	int rtype, n, nargs, t;
+	unsigned int fixedargs;
+	const char *name;
+	char *ref_type;
+
+	symbol = luaL_checkudata(L, 1, DLSYM_METATABLE);
+	fixedargs = luaL_checkinteger(L, 2);
+	rtype = luaL_checkoption(L, 3, NULL, typename);
+
+	nargs = lua_gettop(L) - 3;
+	if (nargs) {
+		arg_type = malloc(nargs * sizeof(ffi_type *));
+		ref_type = malloc(nargs);
+
+		for (n = 0; n < nargs; n++) {
+			name = luaL_checkstring(L, 4 + n);
+			t = *name == '*' ? checkname(&name[1])
+			    : checkname(name);
+			if (t == -1) {
+				free(arg_type);
+				free(ref_type);
+				return luaL_error(L, "unknown argument type");
+			}
+			ref_type[n] = *name == '*' ? 1 : 0;
+			arg_type[n] = type[t];
+		}
+	} else {
+		arg_type = NULL;
+		ref_type = NULL;
+	}
+
+	func = lua_newuserdata(L, sizeof(ffi_func));
+	func->symbol = *symbol;
+	func->arg_type = arg_type;
+	func->ref_type = ref_type;
+	luaL_setmetatable(L, FFI_FUNC_METATABLE);
+
+	lua_pushinteger(L, ffi_prep_cif_var(&func->cif, FFI_DEFAULT_ABI,
+	    fixedargs, nargs, type[rtype], arg_type));
+	return 2;
 }
 
 static int
@@ -146,6 +187,7 @@ luaffi_call(lua_State *L)
 
 	argval = malloc(func->cif.nargs * sizeof(ffi_arg));
 	args = malloc(func->cif.nargs * sizeof(void *));
+
 	for (n = 0; n < func->cif.nargs; n++) {
 		switch (checktype(func->cif.arg_types[n])) {
 		case UINT8:
@@ -189,6 +231,7 @@ luaffi_call(lua_State *L)
 	}
 
 	ffi_call(&func->cif, func->symbol, &rvalue, args);
+
 	free(args);
 	free(argval);
 
@@ -232,9 +275,7 @@ luaffi_call(lua_State *L)
 		printf("unknown return type\n");
 		break;
 	}
-
 	return 1;
-
 }
 
 static int
@@ -295,14 +336,14 @@ luaopen_ffi(lua_State *L)
 	lua_pop(L, 1);
 
 	lua_pushliteral(L, "_COPYRIGHT");
-	lua_pushliteral(L, "Copyright (C) 2017 - 2021 "
+	lua_pushliteral(L, "Copyright (C) 2017 - 2022 "
 	    "micro systems marc balmer");
 	lua_settable(L, -3);
 	lua_pushliteral(L, "_DESCRIPTION");
 	lua_pushliteral(L, "FFI for Lua");
 	lua_settable(L, -3);
 	lua_pushliteral(L, "_VERSION");
-	lua_pushliteral(L, "ffi 1.0.1");
+	lua_pushliteral(L, "ffi 1.0.2");
 	lua_settable(L, -3);
 
 	for (n = 0; ints[n].name; n++) {
