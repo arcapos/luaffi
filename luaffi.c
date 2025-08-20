@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick.
+ * Copyright (C) 2021 - 2023 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -188,7 +188,6 @@ luaffi_call(lua_State *L)
 	ffi_val rvalue;
 	void **args;
 	int n;
-	char *p;
 
 	argval = malloc(func->cif.nargs * sizeof(ffi_arg));
 	args = malloc(func->cif.nargs * sizeof(void *));
@@ -341,7 +340,7 @@ luaopen_ffi(lua_State *L)
 	lua_pop(L, 1);
 
 	lua_pushliteral(L, "_COPYRIGHT");
-	lua_pushliteral(L, "Copyright (C) 2017 - 2022 "
+	lua_pushliteral(L, "Copyright (C) 2017 - 2023 "
 	    "micro systems marc balmer");
 	lua_settable(L, -3);
 	lua_pushliteral(L, "_DESCRIPTION");
