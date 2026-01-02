@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick.
+ * Copyright (C) 2021 - 2025 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -56,4 +56,4 @@ typedef union {
 
 extern int luaopen_ffi(lua_State *L);
 
-#endif /* __ LUAFFI__ */
+#endif /* __LUAFFI__ */
